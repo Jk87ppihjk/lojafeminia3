@@ -11,9 +11,13 @@ router.post('/', verifyToken, async (req: Request, res: Response) => {
   try {
     await connection.beginTransaction();
     
-    // Explicitly cast req to any to access body safely if Typescript complains
+    // Fix: Cast req to any to avoid TypeScript error on body property
     const { items, total, paymentMethod } = (req as any).body;
     const userId = (req as AuthenticatedRequest).user?.id;
+
+    if (!items || items.length === 0) {
+      throw new Error("Carrinho vazio");
+    }
 
     // 1. Create Order
     const [orderResult]: any = await connection.query(

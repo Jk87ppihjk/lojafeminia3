@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { AuthenticatedRequest } from './types';
 
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+  // Fix: Access headers safely
   const authHeader = req.headers['authorization'];
   const token = authHeader && typeof authHeader === 'string' ? authHeader.split(' ')[1] : undefined;
 
