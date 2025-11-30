@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Moda Bella - Produtos</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script>
+    tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#ee2b8c" } } } }
+  </script>
+</head>
+<body class="bg-gray-50 dark:bg-[#221019] min-h-screen">
+  <!-- Header -->
+  <header class="sticky top-0 bg-white dark:bg-black/20 p-4 flex items-center justify-between shadow-sm z-10">
+    <button onclick="window.location.href='index.html'"><span class="material-symbols-outlined dark:text-white">arrow_back</span></button>
+    <h1 class="font-bold text-lg dark:text-white">Produtos</h1>
+    <a href="carrinho.html"><span class="material-symbols-outlined dark:text-white">shopping_bag</span></a>
+  </header>
+
+  <!-- Filters -->
+  <div class="p-4 flex gap-2 overflow-x-auto no-scrollbar">
+    <button onclick="filterProducts('Todos')" class="px-4 py-2 bg-primary text-white rounded-full text-sm font-medium whitespace-nowrap">Todos</button>
+    <button onclick="filterProducts('price_asc')" class="px-4 py-2 bg-white dark:bg-white/10 dark:text-white rounded-full text-sm font-medium whitespace-nowrap border">Menor Preço</button>
+    <button onclick="filterProducts('price_desc')" class="px-4 py-2 bg-white dark:bg-white/10 dark:text-white rounded-full text-sm font-medium whitespace-nowrap border">Maior Preço</button>
+  </div>
+
+  <!-- Search -->
+  <div class="px-4 mb-4">
+    <input type="text" id="searchInput" placeholder="Buscar produtos..." class="w-full rounded-lg border-gray-200 p-3" onkeyup="if(event.key === 'Enter') searchProducts()">
+  </div>
+
+  <!-- Grid -->
+  <div id="products-grid" class="grid grid-cols-2 gap-4 p-4 pb-24">
+    <!-- Content injected -->
+    <p class="col-span-2 text-center text-gray-500 mt-10">Carregando produtos...</p>
+  </div>
+
+  <script>
+    const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+
+    async function fetchProducts(params = '') {
+      try {
+        const res = await fetch(`${API_URL}/products?${params}`);
+        if(!res.ok) throw new Error('Erro ao buscar produtos');
+        
+        const products = await res.json();
+        const container = document.getElementById('products-grid');
+        
+        if (products.length === 0) {
+          container.innerHTML = '<p class="col-span-2 text-center text-gray-500 mt-10">Nenhum produto encontrado.</p>';
+          return;
+        }
+
+        container.innerHTML = products.map(p => `
+          <div class="bg-white dark:bg-white/5 rounded-xl p-3 shadow-sm cursor-pointer" onclick="window.location.href='detalhes.html?id=${p.id}'">
+            <div class="aspect-[3/4] bg-gray-100 rounded-lg mb-2 bg-cover bg-center" style="background-image: url('${p.image_url || 'https://placehold.co/300'}')"></div>
+            <h3 class="font-medium text-sm truncate dark:text-white">${p.name}</h3>
+            <p class="text-primary font-bold text-lg">R$ ${parseFloat(p.price).toFixed(2).replace('.', ',')}</p>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+        document.getElementById('products-grid').innerHTML = '<p class="col-span-2 text-center text-red-500 mt-10">Erro de conexão.</p>';
+      }
+    }
+
+    function filterProducts(type) {
+      if(type === 'Todos') fetchProducts();
+      else fetchProducts(`sort=${type}`);
+    }
+
+    function searchProducts() {
+      const val = document.getElementById('searchInput').value;
+      fetchProducts(`search=${val}`);
+    }
+
+    // Initial Load (check URL params for category)
+    const urlParams = new URLSearchParams(window.location.search);
+    const cat = urlParams.get('category');
+    if(cat) fetchProducts(`category=${cat}`);
+    else fetchProducts();
+  </script>
+</body>
+</html>

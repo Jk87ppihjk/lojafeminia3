@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin - Relatórios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white p-4 shadow-sm flex justify-between items-center">
+        <h1 class="font-bold text-lg">Relatórios</h1>
+        <a href="admin-dashboard.html" class="text-gray-500"><span class="material-symbols-outlined">close</span></a>
+    </header>
+
+    <main class="p-4 space-y-6">
+        <div>
+            <h2 class="font-bold mb-3">Produtos Mais Vendidos</h2>
+            <div id="top-products" class="space-y-2"></div>
+        </div>
+
+        <div>
+            <h2 class="font-bold mb-3 text-red-600">Baixo Estoque</h2>
+            <div id="low-stock" class="space-y-2"></div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+        const token = localStorage.getItem('token');
+
+        async function load() {
+            const res = await fetch(`${API_URL}/admin/reports/analytics`, { headers: { 'Authorization': `Bearer ${token}` }});
+            const data = await res.json();
+            
+            document.getElementById('top-products').innerHTML = data.topProducts.map(p => `
+                <div class="bg-white p-3 rounded flex justify-between items-center shadow-sm">
+                    <span>${p.name}</span>
+                    <span class="font-bold text-blue-600">${p.sold} vendas</span>
+                </div>
+            `).join('');
+
+            document.getElementById('low-stock').innerHTML = data.lowStock.map(p => `
+                <div class="bg-white p-3 rounded flex justify-between items-center shadow-sm border-l-4 border-red-500">
+                    <span>${p.name}</span>
+                    <span class="font-bold text-red-600">${p.stock} un.</span>
+                </div>
+            `).join('');
+        }
+        load();
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Carrinho</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script>tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#ee2b8c" } } } }</script>
+</head>
+<body class="bg-gray-50 dark:bg-[#221019] min-h-screen flex flex-col">
+  <header class="bg-white dark:bg-black/20 p-4 flex items-center shadow-sm">
+    <button onclick="history.back()" class="mr-4"><span class="material-symbols-outlined dark:text-white">arrow_back</span></button>
+    <h1 class="font-bold text-lg dark:text-white">Carrinho</h1>
+  </header>
+
+  <main id="cart-items" class="flex-1 p-4 space-y-4">
+    <div class="flex justify-center mt-10"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+  </main>
+
+  <footer class="bg-white dark:bg-black/20 p-4 border-t dark:border-gray-800">
+    <div class="flex justify-between mb-4">
+      <span class="text-gray-500">Total</span>
+      <span id="cart-total" class="font-bold text-xl dark:text-white">R$ 0,00</span>
+    </div>
+    <button onclick="window.location.href='checkout.html'" class="w-full bg-primary text-white font-bold h-14 rounded-xl">Finalizar Compra</button>
+  </footer>
+
+  <script>
+    const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+
+    async function loadCart() {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const container = document.getElementById('cart-items');
+
+      if (cart.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 mt-10">Seu carrinho está vazio.</p>';
+        document.getElementById('cart-total').innerText = 'R$ 0,00';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/cart/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cart })
+        });
+        
+        const data = await res.json();
+        
+        container.innerHTML = data.items.map(item => `
+          <div class="bg-white dark:bg-white/5 p-4 rounded-xl flex gap-4 items-center shadow-sm">
+            <div class="w-20 h-20 bg-gray-100 rounded-lg bg-cover bg-center" style="background-image: url('${item.image_url}')"></div>
+            <div class="flex-1">
+              <h3 class="font-medium line-clamp-1 dark:text-white">${item.name}</h3>
+              <p class="text-primary font-bold">R$ ${parseFloat(item.price).toFixed(2).replace('.', ',')}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="updateQty(${item.id}, -1)" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">-</button>
+              <span class="font-medium dark:text-white w-4 text-center">${item.quantity}</span>
+              <button onclick="updateQty(${item.id}, 1)" class="w-8 h-8 bg-primary/20 text-primary rounded-full flex items-center justify-center">+</button>
+            </div>
+          </div>
+        `).join('');
+
+        document.getElementById('cart-total').innerText = `R$ ${parseFloat(data.total).toFixed(2).replace('.', ',')}`;
+
+      } catch (error) {
+        container.innerHTML = '<p class="text-red-500 text-center">Erro ao carregar carrinho. Verifique sua conexão.</p>';
+        console.error(error);
+      }
+    }
+
+    function updateQty(id, change) {
+      let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const idx = cart.findIndex(i => i.id === id);
+      if (idx > -1) {
+        cart[idx].quantity += change;
+        if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        loadCart();
+      }
+    }
+
+    loadCart();
+  </script>
+</body>
+</html>

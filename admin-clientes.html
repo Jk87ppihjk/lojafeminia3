@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin - Clientes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white p-4 shadow-sm flex justify-between items-center">
+        <h1 class="font-bold text-lg">Clientes</h1>
+        <a href="admin-dashboard.html" class="text-gray-500"><span class="material-symbols-outlined">close</span></a>
+    </header>
+
+    <main class="p-4 space-y-3" id="customers-list"></main>
+
+    <script>
+        const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+        const token = localStorage.getItem('token');
+
+        async function load() {
+            const res = await fetch(`${API_URL}/admin/customers`, { headers: { 'Authorization': `Bearer ${token}` }});
+            const users = await res.json();
+            
+            document.getElementById('customers-list').innerHTML = users.map(u => `
+                <div class="bg-white p-4 rounded-lg shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">
+                        ${u.name.charAt(0)}
+                    </div>
+                    <div>
+                        <p class="font-bold">${u.name}</p>
+                        <p class="text-sm text-gray-500">${u.email}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        load();
+    </script>
+</body>
+</html>

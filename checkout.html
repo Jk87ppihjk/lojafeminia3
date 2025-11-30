@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Checkout</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <script>tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#ee2b8c" } } } }</script>
+</head>
+<body class="bg-gray-50 dark:bg-[#221019] min-h-screen">
+  <div class="max-w-md mx-auto bg-white dark:bg-[#221019] min-h-screen flex flex-col">
+    <header class="p-4 border-b dark:border-gray-800">
+      <h1 class="text-xl font-bold text-center dark:text-white">Finalizar Pedido</h1>
+    </header>
+
+    <main class="flex-1 p-4">
+      <!-- Address -->
+      <section class="mb-6">
+        <h2 class="font-bold mb-3 dark:text-white">Endereço de Entrega</h2>
+        <div class="space-y-3">
+          <input type="text" placeholder="Rua e Número" class="w-full rounded-lg border-gray-300 p-3 bg-gray-50 dark:bg-white/5 dark:text-white">
+          <div class="flex gap-3">
+            <input type="text" placeholder="Cidade" class="w-1/2 rounded-lg border-gray-300 p-3 bg-gray-50 dark:bg-white/5 dark:text-white">
+            <input type="text" placeholder="CEP" class="w-1/2 rounded-lg border-gray-300 p-3 bg-gray-50 dark:bg-white/5 dark:text-white">
+          </div>
+        </div>
+      </section>
+
+      <!-- Payment -->
+      <section class="mb-6">
+        <h2 class="font-bold mb-3 dark:text-white">Pagamento</h2>
+        <div class="space-y-2">
+          <label class="flex items-center p-4 border rounded-xl cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+            <input type="radio" name="payment" value="pix" class="text-primary focus:ring-primary" checked>
+            <span class="ml-3 font-medium dark:text-white">PIX (Aprovação Imediata)</span>
+          </label>
+          <label class="flex items-center p-4 border rounded-xl cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+            <input type="radio" name="payment" value="card" class="text-primary focus:ring-primary">
+            <span class="ml-3 font-medium dark:text-white">Cartão de Crédito</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Summary -->
+      <section class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl">
+        <div class="flex justify-between mb-2">
+          <span class="text-gray-500">Subtotal</span>
+          <span id="subtotal" class="font-medium dark:text-white">R$ 0,00</span>
+        </div>
+        <div class="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+          <span class="dark:text-white">Total</span>
+          <span id="total" class="text-primary">R$ 0,00</span>
+        </div>
+      </section>
+    </main>
+
+    <div class="p-4">
+      <button onclick="submitOrder()" class="w-full bg-primary text-white font-bold h-14 rounded-xl shadow-lg">Pagar e Finalizar</button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+    let validatedItems = [];
+    let orderTotal = 0;
+
+    // Check Auth
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Você precisa estar logado para finalizar a compra.');
+      window.location.href = 'perfil.html';
+    }
+
+    async function init() {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      if (cart.length === 0) return window.location.href = 'carrinho.html';
+
+      try {
+        const res = await fetch(`${API_URL}/cart/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cart })
+        });
+        const data = await res.json();
+        validatedItems = data.items;
+        orderTotal = data.total;
+
+        const fmt = val => `R$ ${parseFloat(val).toFixed(2).replace('.', ',')}`;
+        document.getElementById('subtotal').innerText = fmt(orderTotal);
+        document.getElementById('total').innerText = fmt(orderTotal);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function submitOrder() {
+      if (validatedItems.length === 0) return;
+
+      const btn = document.querySelector('button');
+      btn.disabled = true;
+      btn.innerText = 'Processando...';
+
+      try {
+        const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+        const res = await fetch(`${API_URL}/checkout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            items: validatedItems,
+            total: orderTotal,
+            paymentMethod
+          })
+        });
+
+        if (res.ok) {
+          localStorage.removeItem('cart');
+          alert('Pedido realizado com sucesso!');
+          window.location.href = 'perfil.html'; // Go to orders
+        } else {
+          throw new Error('Erro ao processar pedido');
+        }
+      } catch (error) {
+        alert(error.message);
+        btn.disabled = false;
+        btn.innerText = 'Pagar e Finalizar';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

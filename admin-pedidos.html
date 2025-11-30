@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin - Pedidos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+</head>
+<body class="bg-gray-50 min-h-screen pb-20">
+    <header class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-10">
+        <h1 class="font-bold text-lg">Pedidos</h1>
+        <a href="admin-dashboard.html" class="text-gray-500"><span class="material-symbols-outlined">close</span></a>
+    </header>
+
+    <main class="p-4 space-y-4" id="orders-list"></main>
+
+    <script>
+        const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+        const token = localStorage.getItem('token');
+
+        async function load() {
+            const res = await fetch(`${API_URL}/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` }});
+            const orders = await res.json();
+            
+            document.getElementById('orders-list').innerHTML = orders.map(o => `
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-bold">#${o.id}</span>
+                        <select onchange="updateStatus(${o.id}, this.value)" class="text-xs border rounded p-1">
+                            <option value="pending" ${o.status==='pending'?'selected':''}>Pendente</option>
+                            <option value="processing" ${o.status==='processing'?'selected':''}>Processando</option>
+                            <option value="shipped" ${o.status==='shipped'?'selected':''}>Enviado</option>
+                            <option value="delivered" ${o.status==='delivered'?'selected':''}>Entregue</option>
+                            <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelado</option>
+                        </select>
+                    </div>
+                    <p class="text-gray-600">Cliente: ${o.customer_name}</p>
+                    <p class="font-bold mt-2">Total: R$ ${parseFloat(o.total).toFixed(2)}</p>
+                </div>
+            `).join('');
+        }
+
+        async function updateStatus(id, status) {
+            await fetch(`${API_URL}/admin/orders/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status })
+            });
+            alert('Status atualizado!');
+        }
+        load();
+    </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Perfil</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <script>tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#ee2b8c" } } } }</script>
+</head>
+<body class="bg-gray-50 dark:bg-[#221019] min-h-screen">
+  
+  <!-- Auth Forms (Hidden by default logic) -->
+  <div id="auth-section" class="hidden min-h-screen flex flex-col items-center justify-center p-6">
+    <div class="bg-white dark:bg-white/10 p-8 rounded-2xl shadow-lg w-full max-w-sm">
+      <h1 class="text-2xl font-bold text-center mb-6 text-primary">Moda Bella</h1>
+      
+      <!-- Login Form -->
+      <form id="login-form" class="space-y-4">
+        <input type="email" id="l-email" placeholder="Email" class="w-full rounded-lg border-gray-300 p-3" required>
+        <input type="password" id="l-pass" placeholder="Senha" class="w-full rounded-lg border-gray-300 p-3" required>
+        <button type="submit" class="w-full bg-primary text-white font-bold h-12 rounded-lg">Entrar</button>
+        <p class="text-center text-sm dark:text-white">Não tem conta? <a href="#" onclick="toggleAuth()" class="text-primary font-bold">Cadastre-se</a></p>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="hidden space-y-4">
+        <input type="text" id="r-name" placeholder="Nome Completo" class="w-full rounded-lg border-gray-300 p-3" required>
+        <input type="email" id="r-email" placeholder="Email" class="w-full rounded-lg border-gray-300 p-3" required>
+        <input type="password" id="r-pass" placeholder="Senha" class="w-full rounded-lg border-gray-300 p-3" required>
+        <button type="submit" class="w-full bg-primary text-white font-bold h-12 rounded-lg">Criar Conta</button>
+        <p class="text-center text-sm dark:text-white">Já tem conta? <a href="#" onclick="toggleAuth()" class="text-primary font-bold">Entrar</a></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Profile View -->
+  <div id="profile-section" class="hidden min-h-screen flex flex-col">
+    <header class="bg-primary p-6 text-white pt-10 pb-16 relative">
+      <h1 class="text-xl font-bold">Meu Perfil</h1>
+      <button onclick="logout()" class="absolute top-10 right-6 text-sm bg-white/20 px-3 py-1 rounded-full">Sair</button>
+    </header>
+
+    <div class="px-4 -mt-10 flex-1 pb-20">
+      <div class="bg-white dark:bg-[#1C1C1E] rounded-2xl shadow-sm p-6 mb-6">
+        <h2 id="user-name" class="text-xl font-bold dark:text-white">Carregando...</h2>
+        <p id="user-email" class="text-gray-500">...</p>
+        <div id="admin-link" class="hidden mt-4 pt-4 border-t">
+          <a href="admin-dashboard.html" class="text-primary font-bold block">Acessar Painel Admin →</a>
+        </div>
+      </div>
+
+      <h3 class="font-bold text-lg mb-4 dark:text-white">Meus Pedidos</h3>
+      <div id="orders-list" class="space-y-4">
+        <!-- Orders Injected -->
+      </div>
+    </div>
+    
+    <!-- Bottom Nav -->
+    <div class="fixed bottom-0 w-full bg-white dark:bg-[#1C1C1E] border-t border-gray-200 dark:border-gray-800 flex justify-around py-3">
+        <a href="index.html" class="flex flex-col items-center text-gray-500 dark:text-gray-400"><span class="material-symbols-outlined fill-1">home</span><span class="text-xs">Início</span></a>
+        <a href="produtos.html" class="flex flex-col items-center text-gray-500 dark:text-gray-400"><span class="material-symbols-outlined">category</span><span class="text-xs">Produtos</span></a>
+        <a href="perfil.html" class="flex flex-col items-center text-primary"><span class="material-symbols-outlined">person</span><span class="text-xs">Perfil</span></a>
+    </div>
+  </div>
+
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <script>
+    const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+    
+    function toggleAuth() {
+      document.getElementById('login-form').classList.toggle('hidden');
+      document.getElementById('register-form').classList.toggle('hidden');
+    }
+
+    async function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        document.getElementById('auth-section').classList.remove('hidden');
+        document.getElementById('profile-section').classList.add('hidden');
+        return;
+      }
+
+      // Load Profile
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('profile-section').classList.remove('hidden');
+
+      try {
+        const res = await fetch(`${API_URL}/profile/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) throw new Error('Sessão expirada');
+        
+        const data = await res.json();
+        document.getElementById('user-name').innerText = data.user.name;
+        document.getElementById('user-email').innerText = data.user.email;
+        
+        if (data.user.role === 'admin') {
+            document.getElementById('admin-link').classList.remove('hidden');
+        }
+
+        const ordersContainer = document.getElementById('orders-list');
+        if (data.orders.length === 0) {
+            ordersContainer.innerHTML = '<p class="text-gray-500">Nenhum pedido recente.</p>';
+        } else {
+            ordersContainer.innerHTML = data.orders.map(o => `
+                <div class="bg-white dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-bold dark:text-white">Pedido #${o.id}</span>
+                        <span class="text-xs px-2 py-1 rounded-full ${getStatusColor(o.status)}">${o.status}</span>
+                    </div>
+                    <p class="text-gray-500 text-sm">${new Date(o.created_at).toLocaleDateString()}</p>
+                    <p class="text-primary font-bold mt-2">Total: R$ ${parseFloat(o.total).toFixed(2).replace('.', ',')}</p>
+                </div>
+            `).join('');
+        }
+
+      } catch (e) {
+        localStorage.removeItem('token');
+        checkAuth();
+      }
+    }
+
+    function getStatusColor(status) {
+        const colors = {
+            'pending': 'bg-yellow-100 text-yellow-800',
+            'processing': 'bg-blue-100 text-blue-800',
+            'shipped': 'bg-purple-100 text-purple-800',
+            'delivered': 'bg-green-100 text-green-800',
+            'cancelled': 'bg-red-100 text-red-800'
+        };
+        return colors[status] || 'bg-gray-100 text-gray-800';
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.reload();
+    }
+
+    // Handlers
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('l-email').value;
+      const password = document.getElementById('l-pass').value;
+
+      try {
+        const res = await fetch(`${API_URL}/profile/login`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('token', data.token);
+          checkAuth();
+        } else {
+          alert(data.message);
+        }
+      } catch(e) { console.error(e); }
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('r-name').value;
+      const email = document.getElementById('r-email').value;
+      const password = document.getElementById('r-pass').value;
+
+      try {
+        const res = await fetch(`${API_URL}/profile/register`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Conta criada! Faça login.');
+          toggleAuth();
+        } else {
+          alert(data.message);
+        }
+      } catch(e) { console.error(e); }
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

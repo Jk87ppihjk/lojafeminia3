@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Detalhes do Produto</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <script>
+    tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#ee2b8c" } } } }
+  </script>
+</head>
+<body class="bg-white dark:bg-[#221019] min-h-screen flex flex-col">
+  <div class="relative flex-1 pb-24">
+    <!-- Image -->
+    <div class="relative h-[50vh] bg-gray-200">
+      <img id="p-image" src="" class="w-full h-full object-cover">
+      <button onclick="history.back()" class="absolute top-4 left-4 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-black">arrow_back</span>
+      </button>
+    </div>
+
+    <!-- Info -->
+    <div class="p-5 -mt-6 bg-white dark:bg-[#221019] rounded-t-3xl relative z-10 min-h-[50vh]">
+      <div class="flex justify-between items-start mb-2">
+        <h1 id="p-name" class="text-2xl font-bold dark:text-white leading-tight">Carregando...</h1>
+        <p id="p-price" class="text-2xl font-bold text-primary whitespace-nowrap ml-4">R$ --,--</p>
+      </div>
+      <p id="p-sku" class="text-sm text-gray-500 mb-4">SKU: --</p>
+
+      <div class="mb-6">
+        <h3 class="font-bold mb-2 dark:text-white">Descrição</h3>
+        <p id="p-desc" class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">--</p>
+      </div>
+
+      <!-- Size Selector (Static for now) -->
+      <div class="mb-6">
+        <h3 class="font-bold mb-2 dark:text-white">Tamanho</h3>
+        <div class="flex gap-3">
+          <button class="w-10 h-10 border rounded-lg flex items-center justify-center dark:text-white hover:border-primary hover:text-primary">P</button>
+          <button class="w-10 h-10 border rounded-lg flex items-center justify-center dark:text-white hover:border-primary hover:text-primary">M</button>
+          <button class="w-10 h-10 border rounded-lg flex items-center justify-center dark:text-white hover:border-primary hover:text-primary">G</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer CTA -->
+  <div class="fixed bottom-0 w-full p-4 bg-white dark:bg-[#221019] border-t dark:border-gray-800">
+    <button onclick="addToCart()" class="w-full bg-primary text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined">shopping_bag</span>
+      Adicionar ao Carrinho
+    </button>
+  </div>
+
+  <script>
+    const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('id');
+    let currentProduct = null;
+
+    async function loadProduct() {
+      if (!productId) return alert('Produto não especificado');
+      try {
+        const res = await fetch(`${API_URL}/product-details/${productId}`);
+        if (!res.ok) throw new Error('Produto não encontrado');
+        const p = await res.json();
+        currentProduct = p;
+
+        document.getElementById('p-image').src = p.image_url || 'https://placehold.co/600x800';
+        document.getElementById('p-name').innerText = p.name;
+        document.getElementById('p-price').innerText = `R$ ${parseFloat(p.price).toFixed(2).replace('.', ',')}`;
+        document.getElementById('p-sku').innerText = `SKU: ${p.sku}`;
+        document.getElementById('p-desc').innerText = p.description || 'Sem descrição.';
+      } catch (e) {
+        alert(e.message);
+        history.back();
+      }
+    }
+
+    function addToCart() {
+      if (!currentProduct) return;
+      let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      
+      const existing = cart.find(i => i.id === currentProduct.id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ id: currentProduct.id, quantity: 1 });
+      }
+      
+      localStorage.setItem('cart', JSON.stringify(cart));
+      
+      // Visual feedback
+      const btn = document.querySelector('button[onclick="addToCart()"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="material-symbols-outlined">check</span> Adicionado!';
+      btn.classList.replace('bg-primary', 'bg-green-600');
+      
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.replace('bg-green-600', 'bg-primary');
+      }, 1500);
+    }
+
+    loadProduct();
+  </script>
+</body>
+</html>

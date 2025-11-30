@@ -1,12 +1,147 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Moda Bella - Início</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: { "primary": "#ee2b8c", "background-light": "#f8f6f7", "background-dark": "#221019" },
+          fontFamily: { "display": ["Plus Jakarta Sans"] },
+        },
+      },
+    }
+  </script>
 <script type="importmap">
 {
   "imports": {
-    "cors": "https://aistudiocdn.com/cors@^2.8.5",
     "express": "https://aistudiocdn.com/express@^5.1.0",
-    "bcryptjs": "https://aistudiocdn.com/bcryptjs@^3.0.3",
-    "jsonwebtoken": "https://aistudiocdn.com/jsonwebtoken@^9.0.2",
     "mysql2/": "https://aistudiocdn.com/mysql2@^3.15.3/",
-    "dotenv": "https://aistudiocdn.com/dotenv@^17.2.3"
+    "dotenv": "https://aistudiocdn.com/dotenv@^17.2.3",
+    "jsonwebtoken": "https://aistudiocdn.com/jsonwebtoken@^9.0.2",
+    "bcryptjs": "https://aistudiocdn.com/bcryptjs@^3.0.3",
+    "cors": "https://aistudiocdn.com/cors@^2.8.5"
   }
 }
 </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark min-h-screen flex flex-col">
+  <!-- Top Bar -->
+  <div class="flex items-center bg-white dark:bg-black/20 p-4 justify-between sticky top-0 z-10 shadow-sm">
+    <button class="text-[#181114] dark:text-white"><span class="material-symbols-outlined text-2xl">menu</span></button>
+    <h1 class="text-xl font-bold text-[#181114] dark:text-white">Moda Bella</h1>
+    <a href="carrinho.html" class="text-[#181114] dark:text-white relative">
+      <span class="material-symbols-outlined text-2xl">shopping_cart</span>
+      <span id="cart-count" class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold px-1.5 rounded-full hidden">0</span>
+    </a>
+  </div>
+
+  <!-- Hero Carousel -->
+  <div class="overflow-x-auto snap-x flex gap-4 p-4">
+    <div class="snap-center min-w-[90%] h-64 rounded-xl bg-cover bg-center flex items-end p-4" style="background-image: linear-gradient(to top, rgba(0,0,0,0.5), transparent), url('https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop');">
+      <div class="text-white"><p class="text-xl font-bold">Nova Coleção</p><p class="text-sm">Tendências 2024</p></div>
+    </div>
+    <div class="snap-center min-w-[90%] h-64 rounded-xl bg-cover bg-center flex items-end p-4" style="background-image: linear-gradient(to top, rgba(0,0,0,0.5), transparent), url('https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=2070&auto=format&fit=crop');">
+      <div class="text-white"><p class="text-xl font-bold">Ofertas de Verão</p><p class="text-sm">Até 50% OFF</p></div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <h2 class="text-lg font-bold px-4 pt-4 dark:text-white">Categorias</h2>
+  <div id="categories-container" class="flex gap-4 p-4 overflow-x-auto">
+    <!-- Categories injected by JS -->
+    <div class="animate-pulse flex gap-4">
+       <div class="w-20 h-20 bg-gray-300 rounded-full"></div>
+       <div class="w-20 h-20 bg-gray-300 rounded-full"></div>
+       <div class="w-20 h-20 bg-gray-300 rounded-full"></div>
+    </div>
+  </div>
+
+  <!-- New Arrivals -->
+  <h2 class="text-lg font-bold px-4 pt-2 dark:text-white">Novidades</h2>
+  <div id="new-arrivals" class="grid grid-cols-2 gap-4 p-4 pb-24">
+    <!-- Products injected by JS -->
+    <div class="col-span-2 text-center text-gray-500 hidden" id="loading-products">Carregando novidades...</div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="fixed bottom-0 w-full bg-white dark:bg-[#1C1C1E] border-t border-gray-200 dark:border-gray-800 flex justify-around py-3">
+    <a href="index.html" class="flex flex-col items-center text-primary"><span class="material-symbols-outlined fill-1">home</span><span class="text-xs">Início</span></a>
+    <a href="produtos.html" class="flex flex-col items-center text-gray-500 dark:text-gray-400"><span class="material-symbols-outlined">category</span><span class="text-xs">Produtos</span></a>
+    <a href="perfil.html" class="flex flex-col items-center text-gray-500 dark:text-gray-400"><span class="material-symbols-outlined">person</span><span class="text-xs">Perfil</span></a>
+  </div>
+
+  <script>
+    // Updated API URL based on deployment logs
+    const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+
+    async function loadHome() {
+      try {
+        document.getElementById('loading-products').classList.remove('hidden');
+        
+        const res = await fetch(`${API_URL}/home`);
+        
+        if (!res.ok) {
+           throw new Error(`Erro API: ${res.status}`);
+        }
+
+        const data = await res.json();
+        
+        // Render Categories
+        if (data.categories && data.categories.length > 0) {
+            const catsHtml = data.categories.map(c => `
+              <div class="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer" onclick="window.location.href='produtos.html?category=${encodeURIComponent(c.category)}'">
+                <div class="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl uppercase hover:bg-primary/30 transition">
+                  ${c.category.substring(0,2)}
+                </div>
+                <p class="text-sm font-medium dark:text-white capitalize">${c.category}</p>
+              </div>
+            `).join('');
+            document.getElementById('categories-container').innerHTML = catsHtml;
+        } else {
+            document.getElementById('categories-container').innerHTML = '<p class="text-sm text-gray-500 px-2">Sem categorias.</p>';
+        }
+
+        // Render New Arrivals
+        if (data.newArrivals && data.newArrivals.length > 0) {
+            const productsHtml = data.newArrivals.map(p => `
+              <div class="flex flex-col gap-2 cursor-pointer group" onclick="window.location.href='detalhes.html?id=${p.id}'">
+                <div class="aspect-[3/4] bg-gray-200 rounded-xl bg-cover bg-center group-hover:opacity-90 transition" style="background-image: url('${p.image_url || 'https://placehold.co/400x600'}')"></div>
+                <div>
+                  <p class="font-medium truncate dark:text-white">${p.name}</p>
+                  <p class="text-primary font-bold">R$ ${parseFloat(p.price).toFixed(2).replace('.', ',')}</p>
+                </div>
+              </div>
+            `).join('');
+            document.getElementById('new-arrivals').innerHTML = productsHtml;
+        } else {
+            document.getElementById('new-arrivals').innerHTML = '<p class="col-span-2 text-center text-gray-500">Nenhuma novidade no momento.</p>';
+        }
+
+      } catch (err) {
+        console.error("Erro ao carregar home", err);
+        document.getElementById('new-arrivals').innerHTML = '<p class="col-span-2 text-center text-red-500">Erro ao conectar com o servidor. Tente novamente mais tarde.</p>';
+      } finally {
+        const loader = document.getElementById('loading-products');
+        if(loader) loader.classList.add('hidden');
+      }
+    }
+
+    // Update Cart Badge
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    if(cart.length > 0) {
+      const badge = document.getElementById('cart-count');
+      badge.innerText = cart.reduce((acc, item) => acc + item.quantity, 0);
+      badge.classList.remove('hidden');
+    }
+
+    loadHome();
+  </script>
+</body>
+</html>

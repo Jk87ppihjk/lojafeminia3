@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script>tailwind.config = { theme: { extend: { colors: { primary: "#1337ec" } } } }</script>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+  
+  <!-- Sidebar/Nav Mobile -->
+  <div class="fixed bottom-0 w-full bg-white border-t flex justify-around p-4 z-20 md:hidden">
+    <a href="admin-dashboard.html" class="text-primary"><span class="material-symbols-outlined">dashboard</span></a>
+    <a href="admin-pedidos.html" class="text-gray-500"><span class="material-symbols-outlined">receipt_long</span></a>
+    <a href="admin-produtos.html" class="text-gray-500"><span class="material-symbols-outlined">inventory_2</span></a>
+    <a href="admin-clientes.html" class="text-gray-500"><span class="material-symbols-outlined">group</span></a>
+  </div>
+
+  <div class="p-6 pb-24 md:p-10">
+    <header class="flex justify-between items-center mb-8">
+      <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+      <div class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">A</div>
+    </header>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 gap-4 mb-8">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <p class="text-sm text-gray-500">Vendas</p>
+        <p id="total-sales" class="text-xl font-bold text-gray-900">R$ 0,00</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <p class="text-sm text-gray-500">Pedidos</p>
+        <p id="total-orders" class="text-xl font-bold text-gray-900">0</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <p class="text-sm text-gray-500">Clientes</p>
+        <p id="total-customers" class="text-xl font-bold text-gray-900">0</p>
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <h2 class="text-lg font-bold mb-4 text-gray-800">Pedidos Recentes</h2>
+    <div id="recent-orders" class="space-y-3">
+        <!-- Injected -->
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+    const token = localStorage.getItem('token');
+
+    if(!token) window.location.href = 'perfil.html';
+
+    async function loadStats() {
+      try {
+        const res = await fetch(`${API_URL}/admin/dashboard/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.status === 403) return alert('Acesso Negado');
+        const data = await res.json();
+
+        document.getElementById('total-sales').innerText = `R$ ${parseFloat(data.sales).toFixed(2).replace('.', ',')}`;
+        document.getElementById('total-orders').innerText = data.orders;
+        document.getElementById('total-customers').innerText = data.customers;
+
+        document.getElementById('recent-orders').innerHTML = data.recentOrders.map(o => `
+            <div class="bg-white p-4 rounded-xl flex items-center justify-between shadow-sm">
+                <div>
+                    <p class="font-bold">#${o.id} - ${o.customer}</p>
+                    <p class="text-sm text-gray-500">${o.status}</p>
+                </div>
+                <p class="font-bold text-primary">R$ ${parseFloat(o.total).toFixed(2)}</p>
+            </div>
+        `).join('');
+
+      } catch (e) { console.error(e); }
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

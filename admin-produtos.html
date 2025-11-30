@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin - Produtos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+</head>
+<body class="bg-gray-50 min-h-screen pb-20">
+    <header class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-10">
+        <h1 class="font-bold text-lg">Produtos</h1>
+        <a href="admin-dashboard.html" class="text-gray-500"><span class="material-symbols-outlined">close</span></a>
+    </header>
+
+    <main class="p-4 space-y-4" id="products-list">
+        <!-- Injected -->
+    </main>
+
+    <div class="fixed bottom-6 right-6">
+        <button class="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center">
+            <span class="material-symbols-outlined">add</span>
+        </button>
+    </div>
+
+    <script>
+        const API_URL = 'https://lojafeminia3-1.onrender.com/api';
+        const token = localStorage.getItem('token');
+
+        async function load() {
+            const res = await fetch(`${API_URL}/admin/products`, { headers: { 'Authorization': `Bearer ${token}` }});
+            const prods = await res.json();
+            
+            document.getElementById('products-list').innerHTML = prods.map(p => `
+                <div class="bg-white p-4 rounded-lg shadow-sm flex gap-4">
+                    <div class="w-16 h-16 bg-gray-100 rounded bg-cover bg-center" style="background-image: url('${p.image_url || ''}')"></div>
+                    <div class="flex-1">
+                        <h3 class="font-bold">${p.name}</h3>
+                        <p class="text-sm text-gray-500">SKU: ${p.sku}</p>
+                        <p class="text-blue-600 font-bold">R$ ${p.price}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        load();
+    </script>
+</body>
+</html>
