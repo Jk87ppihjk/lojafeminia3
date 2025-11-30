@@ -11,8 +11,8 @@ router.post('/', verifyToken, async (req: Request, res: Response) => {
   try {
     await connection.beginTransaction();
     
-    // Cast req to any to safely access body in this context
-    const { items, total, paymentMethod } = req.body;
+    // Explicitly cast req to any to access body safely if Typescript complains
+    const { items, total, paymentMethod } = (req as any).body;
     const userId = (req as AuthenticatedRequest).user?.id;
 
     // 1. Create Order
@@ -30,8 +30,8 @@ router.post('/', verifyToken, async (req: Request, res: Response) => {
       );
     }
 
-    // 3. Mock Payment Integration
-    // You can use process.env.ABACATEPAY_SECRET here
+    // 3. Mock Payment Integration (AbacatePay placeholder)
+    // You can use process.env.ABACATEPAY_SECRET here in the future
     if (paymentMethod === 'pix') {
       console.log('Processing PIX...');
     } else {
