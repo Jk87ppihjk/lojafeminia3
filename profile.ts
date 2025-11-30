@@ -1,14 +1,13 @@
 import express, { Request, Response } from 'express';
 import { verifyToken } from './authMiddleware';
 import { pool } from './db';
-import { AuthenticatedRequest } from './types';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
 // Login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', async (req: any, res: any) => {
   try {
     const { email, password } = req.body;
     const [rows]: any = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -33,7 +32,7 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 // Register
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', async (req: any, res: any) => {
   try {
     const { name, email, password } = req.body;
     const [existing]: any = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -50,9 +49,9 @@ router.post('/register', async (req: Request, res: Response) => {
 });
 
 // Get Profile Data
-router.get('/me', verifyToken, async (req: Request, res: Response) => {
+router.get('/me', verifyToken, async (req: any, res: any) => {
   try {
-    const userId = (req as AuthenticatedRequest).user?.id;
+    const userId = req.user?.id;
     const [users]: any = await pool.query('SELECT id, name, email, role, created_at FROM users WHERE id = ?', [userId]);
     const [orders]: any = await pool.query('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [userId]);
     

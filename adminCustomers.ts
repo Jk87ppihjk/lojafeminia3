@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { verifyAdmin } from './authMiddleware';
 import { pool } from './db';
 
 const router = express.Router();
 
-router.get('/', verifyAdmin, async (req: Request, res: Response) => {
+router.get('/', verifyAdmin, async (req: any, res: any) => {
   try {
     const { search } = req.query;
     let query = 'SELECT id, name, email, created_at FROM users WHERE role = "customer"';

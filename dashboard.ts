@@ -4,7 +4,7 @@ import { pool } from './db';
 
 const router = express.Router();
 
-router.get('/stats', verifyAdmin, async (req: Request, res: Response) => {
+router.get('/stats', verifyAdmin, async (req: any, res: any) => {
   try {
     // Total Sales
     const [salesRows]: any = await pool.query('SELECT SUM(total) as total FROM orders WHERE status != "cancelled"');

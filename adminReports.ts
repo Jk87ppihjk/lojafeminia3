@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { verifyAdmin } from './authMiddleware';
 import { pool } from './db';
 
 const router = express.Router();
 
-router.get('/analytics', verifyAdmin, async (req: Request, res: Response) => {
+router.get('/analytics', verifyAdmin, async (req: any, res: any) => {
   try {
     // Top selling products
     const [topProducts] = await pool.query(`

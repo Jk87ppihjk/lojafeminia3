@@ -26,8 +26,8 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || '*', // Allow connection from Hostinger Frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}) as express.RequestHandler);
-app.use(express.json());
+}) as any);
+app.use(express.json() as any);
 
 // Routes Mapped to Frontend Pages
 app.use('/api/home', homeRoutes);

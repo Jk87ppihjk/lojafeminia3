@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { verifyAdmin } from './authMiddleware';
 import { pool } from './db';
 
 const router = express.Router();
 
-router.get('/', verifyAdmin, async (req: Request, res: Response) => {
+router.get('/', verifyAdmin, async (req: any, res: any) => {
   try {
     const [orders] = await pool.query(`
       SELECT o.*, u.name as customer_name 
@@ -18,7 +18,7 @@ router.get('/', verifyAdmin, async (req: Request, res: Response) => {
   }
 });
 
-router.put('/:id/status', verifyAdmin, async (req: Request, res: Response) => {
+router.put('/:id/status', verifyAdmin, async (req: any, res: any) => {
   try {
     const { status } = req.body;
     await pool.query('UPDATE orders SET status = ? WHERE id = ?', [status, req.params.id]);

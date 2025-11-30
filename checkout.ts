@@ -1,19 +1,18 @@
 import express, { Request, Response } from 'express';
 import { verifyToken } from './authMiddleware';
 import { pool } from './db';
-import { AuthenticatedRequest } from './types';
 
 const router = express.Router();
 
 // Process Checkout
-router.post('/', verifyToken, async (req: Request, res: Response) => {
+router.post('/', verifyToken, async (req: any, res: any) => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
     
     // Fix: Cast req to any to avoid TypeScript error on body property
-    const { items, total, paymentMethod } = (req as any).body;
-    const userId = (req as AuthenticatedRequest).user?.id;
+    const { items, total, paymentMethod } = req.body;
+    const userId = req.user?.id;
 
     if (!items || items.length === 0) {
       throw new Error("Carrinho vazio");
