@@ -26,12 +26,12 @@ app.use(cors({
   origin: '*', // Permite qualquer origem (Frontend Hostinger, Localhost, etc)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-}) as RequestHandler);
+}) as any);
 
 // Tratamento explícito de Preflight (OPTIONS)
-app.options('*', cors() as RequestHandler);
+app.options('*', cors() as any);
 
-app.use(express.json());
+app.use(express.json() as any);
 
 // Routes Mapped to Frontend Pages
 app.use('/api/home', homeRoutes);
