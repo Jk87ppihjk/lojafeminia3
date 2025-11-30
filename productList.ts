@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
     // Sorting
     if (sort === 'price_asc') query += ' ORDER BY price ASC';
     else if (sort === 'price_desc') query += ' ORDER BY price DESC';
-    else query += ' ORDER BY created_at DESC';
+    else query += ' ORDER BY id DESC'; // Fallback to ID DESC instead of created_at
 
     const [products] = await pool.query(query, params);
     res.json(products);

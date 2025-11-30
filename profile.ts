@@ -52,8 +52,10 @@ router.post('/register', async (req: any, res: any) => {
 router.get('/me', verifyToken, async (req: any, res: any) => {
   try {
     const userId = req.user?.id;
-    const [users]: any = await pool.query('SELECT id, name, email, role, created_at FROM users WHERE id = ?', [userId]);
-    const [orders]: any = await pool.query('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [userId]);
+    // Removed created_at from select to be safe if column is missing
+    const [users]: any = await pool.query('SELECT id, name, email, role FROM users WHERE id = ?', [userId]);
+    // Ordered by id DESC instead of created_at
+    const [orders]: any = await pool.query('SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC', [userId]);
     
     res.json({ user: users[0], orders });
   } catch (error) {

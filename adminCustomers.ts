@@ -7,7 +7,8 @@ const router = express.Router();
 router.get('/', verifyAdmin, async (req: any, res: any) => {
   try {
     const { search } = req.query;
-    let query = 'SELECT id, name, email, created_at FROM users WHERE role = "customer"';
+    // Removed created_at from SELECT to avoid errors if column missing
+    let query = 'SELECT id, name, email FROM users WHERE role = "customer"';
     const params: any[] = [];
 
     if (search) {

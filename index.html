@@ -83,12 +83,14 @@
 
     async function loadHome() {
       try {
-        document.getElementById('loading-products').classList.remove('hidden');
+        const loader = document.getElementById('loading-products');
+        if(loader) loader.classList.remove('hidden');
         
         const res = await fetch(`${API_URL}/home`);
         
         if (!res.ok) {
-           throw new Error(`Erro API: ${res.status}`);
+           const errText = await res.text();
+           throw new Error(`Erro API (${res.status}): ${errText || 'Erro desconhecido'}`);
         }
 
         const data = await res.json();
@@ -125,8 +127,13 @@
         }
 
       } catch (err) {
-        console.error("Erro ao carregar home", err);
-        document.getElementById('new-arrivals').innerHTML = '<p class="col-span-2 text-center text-red-500">Erro ao conectar com o servidor. Tente novamente mais tarde.</p>';
+        console.error("Erro ao carregar home:", err);
+        // Show user friendly error based on type
+        let msg = 'Erro ao conectar com o servidor.';
+        if (err.message.includes('Failed to fetch')) msg = 'Erro de conexão (Rede). Verifique sua internet.';
+        else if (err.message.includes('500')) msg = 'Erro interno no servidor. Tente novamente.';
+        
+        document.getElementById('new-arrivals').innerHTML = `<p class="col-span-2 text-center text-red-500 px-4">${msg}</p>`;
       } finally {
         const loader = document.getElementById('loading-products');
         if(loader) loader.classList.add('hidden');
