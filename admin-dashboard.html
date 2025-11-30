@@ -11,7 +11,6 @@
 </head>
 <body class="bg-gray-50 min-h-screen font-sans">
   
-  <!-- Sidebar/Nav Mobile -->
   <div class="fixed bottom-0 w-full bg-white border-t flex justify-around p-4 z-20 md:hidden">
     <a href="admin-dashboard.html" class="text-primary"><span class="material-symbols-outlined">dashboard</span></a>
     <a href="admin-pedidos.html" class="text-gray-500"><span class="material-symbols-outlined">receipt_long</span></a>
@@ -22,10 +21,12 @@
   <div class="p-6 pb-24 md:p-10">
     <header class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
-      <div class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">A</div>
+      <div class="flex items-center gap-4">
+        <button onclick="logout()" class="text-sm text-red-500 font-medium hover:underline">Sair</button>
+        <div class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">A</div>
+      </div>
     </header>
 
-    <!-- Stats -->
     <div class="grid grid-cols-2 gap-4 mb-8">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <p class="text-sm text-gray-500">Vendas</p>
@@ -39,12 +40,14 @@
         <p class="text-sm text-gray-500">Clientes</p>
         <p id="total-customers" class="text-xl font-bold text-gray-900">0</p>
       </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center cursor-pointer" onclick="window.location.href='admin-relatorios.html'">
+         <p class="text-primary font-bold text-sm">Ver Relatórios →</p>
+      </div>
     </div>
 
-    <!-- Recent Orders -->
     <h2 class="text-lg font-bold mb-4 text-gray-800">Pedidos Recentes</h2>
     <div id="recent-orders" class="space-y-3">
-        <!-- Injected -->
+        <p class="text-center text-gray-400">Carregando...</p>
     </div>
   </div>
 
@@ -52,7 +55,12 @@
     const API_URL = 'https://lojafeminia3-1.onrender.com/api';
     const token = localStorage.getItem('token');
 
-    if(!token) window.location.href = 'perfil.html';
+    if(!token) window.location.href = 'admin-login.html';
+
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = 'admin-login.html';
+    }
 
     async function loadStats() {
       try {
@@ -60,24 +68,35 @@
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (res.status === 403) return alert('Acesso Negado');
+        if (res.status === 403 || res.status === 401) {
+            alert('Sessão expirada ou não autorizada');
+            logout();
+            return;
+        }
+        
         const data = await res.json();
 
-        document.getElementById('total-sales').innerText = `R$ ${parseFloat(data.sales).toFixed(2).replace('.', ',')}`;
-        document.getElementById('total-orders').innerText = data.orders;
-        document.getElementById('total-customers').innerText = data.customers;
+        document.getElementById('total-sales').innerText = `R$ ${parseFloat(data.sales || 0).toFixed(2).replace('.', ',')}`;
+        document.getElementById('total-orders').innerText = data.orders || 0;
+        document.getElementById('total-customers').innerText = data.customers || 0;
 
-        document.getElementById('recent-orders').innerHTML = data.recentOrders.map(o => `
-            <div class="bg-white p-4 rounded-xl flex items-center justify-between shadow-sm">
-                <div>
-                    <p class="font-bold">#${o.id} - ${o.customer}</p>
-                    <p class="text-sm text-gray-500">${o.status}</p>
+        if(!data.recentOrders || data.recentOrders.length === 0) {
+            document.getElementById('recent-orders').innerHTML = '<p class="text-gray-500 text-sm">Nenhum pedido recente.</p>';
+        } else {
+            document.getElementById('recent-orders').innerHTML = data.recentOrders.map(o => `
+                <div class="bg-white p-4 rounded-xl flex items-center justify-between shadow-sm border border-gray-50">
+                    <div>
+                        <p class="font-bold text-gray-800">#${o.id} - ${o.customer}</p>
+                        <p class="text-xs text-gray-500 uppercase tracking-wide">${o.status}</p>
+                    </div>
+                    <p class="font-bold text-primary">R$ ${parseFloat(o.total).toFixed(2).replace('.', ',')}</p>
                 </div>
-                <p class="font-bold text-primary">R$ ${parseFloat(o.total).toFixed(2)}</p>
-            </div>
-        `).join('');
+            `).join('');
+        }
 
-      } catch (e) { console.error(e); }
+      } catch (e) { 
+        console.error(e);
+      }
     }
 
     loadStats();

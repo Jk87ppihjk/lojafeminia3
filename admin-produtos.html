@@ -14,33 +14,48 @@
     </header>
 
     <main class="p-4 space-y-4" id="products-list">
-        <!-- Injected -->
+        <p class="text-center text-gray-400 mt-10">Carregando produtos...</p>
     </main>
 
-    <div class="fixed bottom-6 right-6">
-        <button class="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center">
+    <div class="fixed bottom-20 right-6 md:bottom-6">
+        <button class="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition">
             <span class="material-symbols-outlined">add</span>
         </button>
+    </div>
+
+    <div class="fixed bottom-0 w-full bg-white border-t flex justify-around p-4 z-20 md:hidden">
+        <a href="admin-dashboard.html" class="text-gray-500"><span class="material-symbols-outlined">dashboard</span></a>
+        <a href="admin-pedidos.html" class="text-gray-500"><span class="material-symbols-outlined">receipt_long</span></a>
+        <a href="admin-produtos.html" class="text-blue-600"><span class="material-symbols-outlined">inventory_2</span></a>
+        <a href="admin-clientes.html" class="text-gray-500"><span class="material-symbols-outlined">group</span></a>
     </div>
 
     <script>
         const API_URL = 'https://lojafeminia3-1.onrender.com/api';
         const token = localStorage.getItem('token');
+        
+        if(!token) window.location.href = 'admin-login.html';
 
         async function load() {
-            const res = await fetch(`${API_URL}/admin/products`, { headers: { 'Authorization': `Bearer ${token}` }});
-            const prods = await res.json();
-            
-            document.getElementById('products-list').innerHTML = prods.map(p => `
-                <div class="bg-white p-4 rounded-lg shadow-sm flex gap-4">
-                    <div class="w-16 h-16 bg-gray-100 rounded bg-cover bg-center" style="background-image: url('${p.image_url || ''}')"></div>
-                    <div class="flex-1">
-                        <h3 class="font-bold">${p.name}</h3>
-                        <p class="text-sm text-gray-500">SKU: ${p.sku}</p>
-                        <p class="text-blue-600 font-bold">R$ ${p.price}</p>
+            try {
+                const res = await fetch(`${API_URL}/admin/products`, { headers: { 'Authorization': `Bearer ${token}` }});
+                if(!res.ok) throw new Error('Falha ao carregar');
+                const prods = await res.json();
+                
+                document.getElementById('products-list').innerHTML = prods.map(p => `
+                    <div class="bg-white p-4 rounded-lg shadow-sm flex gap-4 border border-gray-100">
+                        <div class="w-16 h-16 bg-gray-100 rounded bg-cover bg-center" style="background-image: url('${p.image_url || 'https://placehold.co/100'}')"></div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-800 line-clamp-1">${p.name}</h3>
+                            <p class="text-xs text-gray-500">SKU: ${p.sku}</p>
+                            <p class="text-blue-600 font-bold mt-1">R$ ${parseFloat(p.price).toFixed(2).replace('.', ',')}</p>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            } catch(e) {
+                console.error(e);
+                window.location.href = 'admin-login.html';
+            }
         }
         load();
     </script>

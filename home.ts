@@ -6,15 +6,16 @@ const router = express.Router();
 // Get featured products and new arrivals for Home
 router.get('/', async (req, res) => {
   try {
-    // Fetch 4 newest products (Sorted by ID DESC as proxy for created_at)
+    // Busca os 4 produtos mais recentes (Ordenado por ID DESC para garantir compatibilidade)
     const [newArrivals] = await pool.query('SELECT * FROM products ORDER BY id DESC LIMIT 4');
-    // Fetch categories (distinct)
+    // Busca categorias distintas
     const [categories] = await pool.query('SELECT DISTINCT category FROM products LIMIT 4');
     
     res.json({ newArrivals, categories });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Erro ao carregar home' });
+    console.error("Erro na home:", error);
+    // Retorna array vazio em caso de erro para não quebrar o frontend
+    res.json({ newArrivals: [], categories: [] });
   }
 });
 

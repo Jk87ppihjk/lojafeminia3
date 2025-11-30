@@ -6,16 +6,17 @@
   <title>Perfil</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <script>tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#ee2b8c" } } } }</script>
 </head>
 <body class="bg-gray-50 dark:bg-[#221019] min-h-screen">
   
-  <!-- Auth Forms (Hidden by default logic) -->
+  <!-- Auth Forms -->
   <div id="auth-section" class="hidden min-h-screen flex flex-col items-center justify-center p-6">
     <div class="bg-white dark:bg-white/10 p-8 rounded-2xl shadow-lg w-full max-w-sm">
       <h1 class="text-2xl font-bold text-center mb-6 text-primary">Moda Bella</h1>
       
-      <!-- Login Form -->
+      <!-- Login -->
       <form id="login-form" class="space-y-4">
         <input type="email" id="l-email" placeholder="Email" class="w-full rounded-lg border-gray-300 p-3" required>
         <input type="password" id="l-pass" placeholder="Senha" class="w-full rounded-lg border-gray-300 p-3" required>
@@ -23,7 +24,7 @@
         <p class="text-center text-sm dark:text-white">Não tem conta? <a href="#" onclick="toggleAuth()" class="text-primary font-bold">Cadastre-se</a></p>
       </form>
 
-      <!-- Register Form -->
+      <!-- Register -->
       <form id="register-form" class="hidden space-y-4">
         <input type="text" id="r-name" placeholder="Nome Completo" class="w-full rounded-lg border-gray-300 p-3" required>
         <input type="email" id="r-email" placeholder="Email" class="w-full rounded-lg border-gray-300 p-3" required>
@@ -34,7 +35,7 @@
     </div>
   </div>
 
-  <!-- Profile View -->
+  <!-- Profile -->
   <div id="profile-section" class="hidden min-h-screen flex flex-col">
     <header class="bg-primary p-6 text-white pt-10 pb-16 relative">
       <h1 class="text-xl font-bold">Meu Perfil</h1>
@@ -64,8 +65,6 @@
     </div>
   </div>
 
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-
   <script>
     const API_URL = 'https://lojafeminia3-1.onrender.com/api';
     
@@ -82,7 +81,6 @@
         return;
       }
 
-      // Load Profile
       document.getElementById('auth-section').classList.add('hidden');
       document.getElementById('profile-section').classList.remove('hidden');
 
@@ -111,7 +109,7 @@
                         <span class="font-bold dark:text-white">Pedido #${o.id}</span>
                         <span class="text-xs px-2 py-1 rounded-full ${getStatusColor(o.status)}">${o.status}</span>
                     </div>
-                    <p class="text-gray-500 text-sm">${new Date(o.created_at).toLocaleDateString()}</p>
+                    <p class="text-gray-500 text-sm">${new Date(o.created_at || Date.now()).toLocaleDateString()}</p>
                     <p class="text-primary font-bold mt-2">Total: R$ ${parseFloat(o.total).toFixed(2).replace('.', ',')}</p>
                 </div>
             `).join('');
@@ -139,7 +137,6 @@
       window.location.reload();
     }
 
-    // Handlers
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('l-email').value;

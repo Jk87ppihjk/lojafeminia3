@@ -33,7 +33,6 @@
 
   <!-- Grid -->
   <div id="products-grid" class="grid grid-cols-2 gap-4 p-4 pb-24">
-    <!-- Content injected -->
     <p class="col-span-2 text-center text-gray-500 mt-10">Carregando produtos...</p>
   </div>
 
@@ -76,7 +75,6 @@
       fetchProducts(`search=${val}`);
     }
 
-    // Initial Load (check URL params for category)
     const urlParams = new URLSearchParams(window.location.search);
     const cat = urlParams.get('category');
     if(cat) fetchProducts(`category=${cat}`);

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { RequestHandler } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initDb } from './initDb';
@@ -21,13 +21,17 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Middleware - Configuração Robusta de CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*', // Allow connection from Hostinger Frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}) as any);
-app.use(express.json() as any);
+  origin: '*', // Permite qualquer origem (Frontend Hostinger, Localhost, etc)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}) as RequestHandler);
+
+// Tratamento explícito de Preflight (OPTIONS)
+app.options('*', cors() as RequestHandler);
+
+app.use(express.json());
 
 // Routes Mapped to Frontend Pages
 app.use('/api/home', homeRoutes);
@@ -35,7 +39,7 @@ app.use('/api/products', productListRoutes);
 app.use('/api/product-details', productDetailsRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/checkout', checkoutRoutes);
-app.use('/api/profile', profileRoutes); // Handles Login & Profile
+app.use('/api/profile', profileRoutes);
 app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/admin/products', adminProductsRoutes);
 app.use('/api/admin/orders', adminOrdersRoutes);

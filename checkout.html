@@ -15,7 +15,6 @@
     </header>
 
     <main class="flex-1 p-4">
-      <!-- Address -->
       <section class="mb-6">
         <h2 class="font-bold mb-3 dark:text-white">Endereço de Entrega</h2>
         <div class="space-y-3">
@@ -27,7 +26,6 @@
         </div>
       </section>
 
-      <!-- Payment -->
       <section class="mb-6">
         <h2 class="font-bold mb-3 dark:text-white">Pagamento</h2>
         <div class="space-y-2">
@@ -42,7 +40,6 @@
         </div>
       </section>
 
-      <!-- Summary -->
       <section class="bg-gray-50 dark:bg-white/5 p-4 rounded-xl">
         <div class="flex justify-between mb-2">
           <span class="text-gray-500">Subtotal</span>
@@ -65,7 +62,6 @@
     let validatedItems = [];
     let orderTotal = 0;
 
-    // Check Auth
     const token = localStorage.getItem('token');
     if (!token) {
       alert('Você precisa estar logado para finalizar a compra.');
@@ -119,7 +115,7 @@
         if (res.ok) {
           localStorage.removeItem('cart');
           alert('Pedido realizado com sucesso!');
-          window.location.href = 'perfil.html'; // Go to orders
+          window.location.href = 'perfil.html';
         } else {
           throw new Error('Erro ao processar pedido');
         }

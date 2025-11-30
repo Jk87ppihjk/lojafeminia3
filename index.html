@@ -78,7 +78,6 @@
   </div>
 
   <script>
-    // Updated API URL based on deployment logs
     const API_URL = 'https://lojafeminia3-1.onrender.com/api';
 
     async function loadHome() {
@@ -88,10 +87,7 @@
         
         const res = await fetch(`${API_URL}/home`);
         
-        if (!res.ok) {
-           const errText = await res.text();
-           throw new Error(`Erro API (${res.status}): ${errText || 'Erro desconhecido'}`);
-        }
+        if (!res.ok) throw new Error(`Erro API (${res.status})`);
 
         const data = await res.json();
         
@@ -128,10 +124,12 @@
 
       } catch (err) {
         console.error("Erro ao carregar home:", err);
-        // Show user friendly error based on type
         let msg = 'Erro ao conectar com o servidor.';
-        if (err.message.includes('Failed to fetch')) msg = 'Erro de conexão (Rede). Verifique sua internet.';
-        else if (err.message.includes('500')) msg = 'Erro interno no servidor. Tente novamente.';
+        
+        if (err.message.includes('Failed to fetch')) {
+             msg = 'Conectando ao servidor... Aguarde.';
+             setTimeout(loadHome, 3000); // Retry logic
+        }
         
         document.getElementById('new-arrivals').innerHTML = `<p class="col-span-2 text-center text-red-500 px-4">${msg}</p>`;
       } finally {
@@ -140,7 +138,6 @@
       }
     }
 
-    // Update Cart Badge
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     if(cart.length > 0) {
       const badge = document.getElementById('cart-count');

@@ -8,20 +8,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <header class="bg-white p-4 shadow-sm flex justify-between items-center">
+    <header class="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-10">
         <h1 class="font-bold text-lg">Relatórios</h1>
         <a href="admin-dashboard.html" class="text-gray-500"><span class="material-symbols-outlined">close</span></a>
     </header>
 
     <main class="p-4 space-y-6">
         <div>
-            <h2 class="font-bold mb-3">Produtos Mais Vendidos</h2>
-            <div id="top-products" class="space-y-2"></div>
+            <h2 class="font-bold mb-3 text-gray-700">Produtos Mais Vendidos</h2>
+            <div id="top-products" class="space-y-2">
+                <p class="text-gray-400 text-sm">Carregando...</p>
+            </div>
         </div>
 
         <div>
-            <h2 class="font-bold mb-3 text-red-600">Baixo Estoque</h2>
-            <div id="low-stock" class="space-y-2"></div>
+            <h2 class="font-bold mb-3 text-red-600 flex items-center gap-2">
+                <span class="material-symbols-outlined">warning</span> Baixo Estoque
+            </h2>
+            <div id="low-stock" class="space-y-2">
+                <p class="text-gray-400 text-sm">Carregando...</p>
+            </div>
         </div>
     </main>
 
@@ -29,23 +35,41 @@
         const API_URL = 'https://lojafeminia3-1.onrender.com/api';
         const token = localStorage.getItem('token');
 
-        async function load() {
-            const res = await fetch(`${API_URL}/admin/reports/analytics`, { headers: { 'Authorization': `Bearer ${token}` }});
-            const data = await res.json();
-            
-            document.getElementById('top-products').innerHTML = data.topProducts.map(p => `
-                <div class="bg-white p-3 rounded flex justify-between items-center shadow-sm">
-                    <span>${p.name}</span>
-                    <span class="font-bold text-blue-600">${p.sold} vendas</span>
-                </div>
-            `).join('');
+        if(!token) window.location.href = 'admin-login.html';
 
-            document.getElementById('low-stock').innerHTML = data.lowStock.map(p => `
-                <div class="bg-white p-3 rounded flex justify-between items-center shadow-sm border-l-4 border-red-500">
-                    <span>${p.name}</span>
-                    <span class="font-bold text-red-600">${p.stock} un.</span>
-                </div>
-            `).join('');
+        async function load() {
+            try {
+                const res = await fetch(`${API_URL}/admin/reports/analytics`, { headers: { 'Authorization': `Bearer ${token}` }});
+                if(!res.ok) throw new Error('Erro');
+                const data = await res.json();
+                
+                if(data.topProducts.length === 0) {
+                    document.getElementById('top-products').innerHTML = '<p class="text-gray-500 text-sm italic">Nenhum dado de vendas.</p>';
+                } else {
+                    document.getElementById('top-products').innerHTML = data.topProducts.map((p, i) => `
+                        <div class="bg-white p-3 rounded flex justify-between items-center shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-gray-400">#${i+1}</span>
+                                <span>${p.name}</span>
+                            </div>
+                            <span class="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs">${p.sold} vendas</span>
+                        </div>
+                    `).join('');
+                }
+
+                if(data.lowStock.length === 0) {
+                    document.getElementById('low-stock').innerHTML = '<p class="text-green-600 text-sm italic">Estoque saudável.</p>';
+                } else {
+                    document.getElementById('low-stock').innerHTML = data.lowStock.map(p => `
+                        <div class="bg-white p-3 rounded flex justify-between items-center shadow-sm border-l-4 border-red-500">
+                            <span>${p.name}</span>
+                            <span class="font-bold text-red-600 bg-red-50 px-2 py-1 rounded text-xs">${p.stock} un.</span>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                window.location.href = 'admin-login.html';
+            }
         }
         load();
     </script>

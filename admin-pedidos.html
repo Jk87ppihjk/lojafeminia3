@@ -13,41 +13,59 @@
         <a href="admin-dashboard.html" class="text-gray-500"><span class="material-symbols-outlined">close</span></a>
     </header>
 
-    <main class="p-4 space-y-4" id="orders-list"></main>
+    <main class="p-4 space-y-4" id="orders-list">
+        <p class="text-center text-gray-400 mt-10">Carregando pedidos...</p>
+    </main>
+
+    <div class="fixed bottom-0 w-full bg-white border-t flex justify-around p-4 z-20 md:hidden">
+        <a href="admin-dashboard.html" class="text-gray-500"><span class="material-symbols-outlined">dashboard</span></a>
+        <a href="admin-pedidos.html" class="text-blue-600"><span class="material-symbols-outlined">receipt_long</span></a>
+        <a href="admin-produtos.html" class="text-gray-500"><span class="material-symbols-outlined">inventory_2</span></a>
+        <a href="admin-clientes.html" class="text-gray-500"><span class="material-symbols-outlined">group</span></a>
+    </div>
 
     <script>
         const API_URL = 'https://lojafeminia3-1.onrender.com/api';
         const token = localStorage.getItem('token');
 
+        if(!token) window.location.href = 'admin-login.html';
+
         async function load() {
-            const res = await fetch(`${API_URL}/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` }});
-            const orders = await res.json();
-            
-            document.getElementById('orders-list').innerHTML = orders.map(o => `
-                <div class="bg-white p-4 rounded-lg shadow-sm">
-                    <div class="flex justify-between mb-2">
-                        <span class="font-bold">#${o.id}</span>
-                        <select onchange="updateStatus(${o.id}, this.value)" class="text-xs border rounded p-1">
-                            <option value="pending" ${o.status==='pending'?'selected':''}>Pendente</option>
-                            <option value="processing" ${o.status==='processing'?'selected':''}>Processando</option>
-                            <option value="shipped" ${o.status==='shipped'?'selected':''}>Enviado</option>
-                            <option value="delivered" ${o.status==='delivered'?'selected':''}>Entregue</option>
-                            <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelado</option>
-                        </select>
+            try {
+                const res = await fetch(`${API_URL}/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` }});
+                if(!res.ok) throw new Error('Erro');
+                const orders = await res.json();
+                
+                document.getElementById('orders-list').innerHTML = orders.map(o => `
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-bold text-gray-800">#${o.id}</span>
+                            <select onchange="updateStatus(${o.id}, this.value)" class="text-xs border rounded p-1 bg-gray-50">
+                                <option value="pending" ${o.status==='pending'?'selected':''}>Pendente</option>
+                                <option value="processing" ${o.status==='processing'?'selected':''}>Processando</option>
+                                <option value="shipped" ${o.status==='shipped'?'selected':''}>Enviado</option>
+                                <option value="delivered" ${o.status==='delivered'?'selected':''}>Entregue</option>
+                                <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelado</option>
+                            </select>
+                        </div>
+                        <p class="text-gray-600 text-sm">Cliente: <span class="font-medium text-gray-900">${o.customer_name}</span></p>
+                        <p class="font-bold mt-2 text-blue-600">Total: R$ ${parseFloat(o.total).toFixed(2).replace('.', ',')}</p>
                     </div>
-                    <p class="text-gray-600">Cliente: ${o.customer_name}</p>
-                    <p class="font-bold mt-2">Total: R$ ${parseFloat(o.total).toFixed(2)}</p>
-                </div>
-            `).join('');
+                `).join('');
+            } catch(e) {
+                window.location.href = 'admin-login.html';
+            }
         }
 
         async function updateStatus(id, status) {
-            await fetch(`${API_URL}/admin/orders/${id}/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status })
-            });
-            alert('Status atualizado!');
+            try {
+                const res = await fetch(`${API_URL}/admin/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ status })
+                });
+                if(res.ok) alert('Status atualizado!');
+            } catch(e) { alert('Erro ao atualizar'); }
         }
         load();
     </script>
